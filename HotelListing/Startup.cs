@@ -18,6 +18,7 @@ using HotelListing.Configurations;
 using HotelListing.IRepository;
 using HotelListing.Repository;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Identity;
 
 namespace HotelListing
 {
@@ -36,6 +37,9 @@ namespace HotelListing
             services.AddDbContext<DatabaseContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
                 );
+
+            services.AddAuthentication();
+            services.ConfigurationIdentity();
 
             services.AddCors(o => {
                 o.AddPolicy("AllowAll", builder =>
