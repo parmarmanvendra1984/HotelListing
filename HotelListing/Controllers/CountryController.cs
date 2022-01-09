@@ -2,9 +2,11 @@
 using HotelListing.Data;
 using HotelListing.IRepository;
 using HotelListing.Models;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -29,38 +31,49 @@ namespace HotelListing.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCountries()
+        [HttpCacheExpiration(CacheLocation = CacheLocation.Public,MaxAge =60)]
+        [HttpCacheValidation(MustRevalidate =true)]
+        //[ResponseCache(CacheProfileName = "120SecondsDuration")]  
+        //[ResponseCache(Duration = 60)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetCountries([FromQuery] RequestParams requestParams)
         {
-            try
-            {
-                var countries = await _unitOfWork.Countries.GetAll();
+            //try
+            //{
+                var countries = await _unitOfWork.Countries.GetPagedList(requestParams); 
                 var results = _mapper.Map<IList<CountryDTO>>(countries);
                 return Ok(results);
-            }
-            catch (Exception ex)
-            {
-                _looger.LogError(ex, $"Something went wrong in the {nameof(GetCountries)}");
-                return StatusCode(500,"Internal Server Error. Please try again leter");
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _looger.LogError(ex, $"Something went wrong in the {nameof(GetCountries)}");
+            //    return StatusCode(500,"Internal Server Error. Please try again leter");
+            //}
         }
 
         
         [HttpGet("{id:int}", Name = "GetCountry")]
+        [ResponseCache(CacheProfileName = "120SecondsDuration")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetCountry(int id)
         {
-            try
-            {
-                var country = await _unitOfWork.Countries.Get(q => q.Id == id, new List<string> { "Hotels"});
-                var result = _mapper.Map<CountryDTO>(country);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _looger.LogError(ex, $"Something went wrong in the {nameof(GetCountry)}");
-                return StatusCode(500, "Internal Server Error. Please try again leter");
-            }
+            //try
+            //{
+
+            //var country = await _unitOfWork.Countries.Get(q => q.Id == id, new List<string> { "Hotels"});
+            var country = await _unitOfWork.Countries.Get(q => q.Id == id, include: q=>q.Include(x => x.Hotels));
+
+
+            var result = _mapper.Map<CountryDTO>(country);
+                return Ok(result); 
+            //}
+            //catch (Exception ex)
+            //{
+            //    _looger.LogError(ex, $"Something went wrong in the {nameof(GetCountry)}");
+            //    return StatusCode(500, "Internal Server Error. Please try again leter");
+            //}
         }
 
         //[Authorize(Roles = "Administrator")]
@@ -77,19 +90,19 @@ namespace HotelListing.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
+            //try
+            //{
                 var country = _mapper.Map<Country>(countryDTO);
                 await _unitOfWork.Countries.Insert(country);
                 await _unitOfWork.Save();
 
                 return CreatedAtRoute("GetCountry", new { id = country.Id }, country);
-            }
-            catch (Exception ex)
-            {
-                _looger.LogError(ex, $"Something went wrong in the {nameof(CreateCountry)}");
-                return StatusCode(500, "Internal Server Error. Please try again leter");
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _looger.LogError(ex, $"Something went wrong in the {nameof(CreateCountry)}");
+            //    return StatusCode(500, "Internal Server Error. Please try again leter");
+            //}
         }
 
         [HttpPut("{id:int}")]
@@ -105,8 +118,8 @@ namespace HotelListing.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
+            //try
+            //{
                 var country = await _unitOfWork.Countries.Get(q => q.Id == id);
 
                 if (country == null)
@@ -121,12 +134,12 @@ namespace HotelListing.Controllers
                 await _unitOfWork.Save();
 
                 return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _looger.LogError(ex, $"Something went wrong in the {nameof(UpdateCountry)}");
-                return StatusCode(500, "Internal Server Error. Please try again leter");
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _looger.LogError(ex, $"Something went wrong in the {nameof(UpdateCountry)}");
+            //    return StatusCode(500, "Internal Server Error. Please try again leter");
+            //}
         }
 
         [HttpDelete("{id:int}")]
@@ -142,8 +155,8 @@ namespace HotelListing.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
+            //try
+            //{
                 var county = await _unitOfWork.Countries.Get(q => q.Id == id);
                 if (county == null)
                 {
@@ -155,12 +168,12 @@ namespace HotelListing.Controllers
                 await _unitOfWork.Save();
 
                 return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _looger.LogError(ex, $"Something went wrong in the {nameof(DeleteCountry)}");
-                return StatusCode(500, "Internal Server Error. Please try again leter");
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    _looger.LogError(ex, $"Something went wrong in the {nameof(DeleteCountry)}");
+            //    return StatusCode(500, "Internal Server Error. Please try again leter");
+            //}
         }
 
 
