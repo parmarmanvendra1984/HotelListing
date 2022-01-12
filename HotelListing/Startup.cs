@@ -66,7 +66,7 @@ namespace HotelListing
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HotelListing", Version = "v1" });
             });
             //services.AddControllers();
-
+             
             services.AddControllers(config =>
             {
                 config.CacheProfiles.Add("120SecondsDuration", new CacheProfile
@@ -97,7 +97,7 @@ namespace HotelListing
 
             app.UseResponseCaching();
             app.UseHttpCacheHeaders();
-            app.UseIpRateLimiting();
+            app.UseIpRateLimiting(); 
 
             app.UseRouting();
 
